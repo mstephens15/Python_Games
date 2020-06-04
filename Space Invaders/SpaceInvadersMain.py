@@ -149,7 +149,7 @@ while running:
             enemyY[i] += enemyY_change[i]
             enemyX_change[i] = -4
 
-        # Collision
+        # When you blow one of them up
         collision = isCollision(enemyX[i], enemyY[i], bulletX, bulletY)
         if collision:
             explosion_sound = mixer.Sound('explosion.wav')
