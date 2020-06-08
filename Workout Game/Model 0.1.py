@@ -1,5 +1,6 @@
 import pygame
 import random
+import time
 from pygame import mixer  # For background music and sounds
 
 # Done every time
@@ -8,39 +9,41 @@ pygame.init()
 # Screen
 screen = pygame.display.set_mode((800,600))
 
-# Colors
+# Constants
 bright_green = (0, 255, 0)
 green = (0, 155, 0)
 black = (0, 0, 0)
 
-# Constants
 smallText = pygame.font.Font("freesansbold.ttf",16)
 
 left = pygame.K_LEFT
 right = pygame.K_RIGHT
 up = pygame.K_UP
 down = pygame.K_DOWN
-
-# Background
+clock = pygame.time.Clock()
 
 # Background Music
 
-# Title and Icon
-pygame.display.set_caption("Dudley Model 0.1")
-icon = pygame.image.load("cotton-pad.png")
-pygame.display.set_icon(icon)
-
 # Sprite
-guy = pygame.image.load("weak.png")
+guy = pygame.image.load('GameAnimations/standing.png')
 guyX = 50
 guyY = 425
-guyX_change = 0
-guyY_change = 0
 
     # Sprite Movement
-width = 60
-height = 60
+width = 64
+height = 64
 vel = 5
+left = False
+right = False
+walkCount = 0
+
+    # Animations
+walkRight = [pygame.image.load('GameAnimations/R1.png'), pygame.image.load('GameAnimations/R2.png'), pygame.image.load('GameAnimations/R3.png'),
+             pygame.image.load('GameAnimations/R4.png'), pygame.image.load('GameAnimations/R5.png'), pygame.image.load('GameAnimations/R6.png'),
+             pygame.image.load('GameAnimations/R7.png'), pygame.image.load('GameAnimations/R8.png'), pygame.image.load('GameAnimations/R9.png')]
+walkLeft = [pygame.image.load('GameAnimations/L1.png'), pygame.image.load('GameAnimations/L2.png'), pygame.image.load('GameAnimations/L3.png'),
+            pygame.image.load('GameAnimations/L4.png'), pygame.image.load('GameAnimations/L5.png'), pygame.image.load('GameAnimations/L6.png'),
+            pygame.image.load('GameAnimations/L7.png'), pygame.image.load('GameAnimations/L8.png'), pygame.image.load('GameAnimations/L9.png')]
 
 # Level 1
 level1Img = pygame.image.load("cotton-pad.png")
@@ -71,6 +74,26 @@ for i in range(num_trees):
     tree_rightY.append(random.randint(0,550))
 
 ## Functions
+def redrawScreen():
+    global walkCount
+
+    if (walkCount + 1) >= 27:
+        walkCount = 0
+
+    if left:
+        screen.blit(walkLeft[walkCount//3], (guyX,guyY))
+        walkCount += 1
+        pygame.display.update()
+
+    elif right:
+        screen.blit(walkRight[walkCount//3], (guyX,guyY))
+        walkCount += 1
+        pygame.display.update()
+
+    else:
+        screen.blit(guy, (guyX,guyY))
+        pygame.display.update()
+
 def draw_level(x, y):
     screen.blit(level1Img, (x, y))
 
@@ -111,10 +134,13 @@ def replace(x, y):
 # Window Loop
 running = True
 while running:
-    screen.fill((100,150,180))
+    pygame.time.delay(20)
+    clock.tick(27)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+    screen.fill((100,150,180))
 
     draw_level(level1X, level1Y)
     draw_level2(level2X, level2Y)
@@ -136,33 +162,39 @@ while running:
 
 
     # Movement
-    for event in pygame.event.get():
-        if event.type == pygame.KEYDOWN:
-            if event.key == left and guyX > vel:
-                guyX_change = -5
-            if event.key == right and guyX < 500-width-vel:
-                guyX_change = 5
-            if event.key == up and guyY > vel:
-                guyY_change = -5
-            if event.key == down and guyY < 500 - height - vel:
-                guyY_change = 5
-        if event.type == pygame.KEYUP:
-            if event.key == left or event.key == right or event.key == up or event.key == down:
-                playerX_change = 0
+    keys = pygame.key.get_pressed()
 
-    guyX += guyX_change
-    guyY += guyY_change
 
-    if guyX <= 0:
-        guyX = 0
-    elif guyX >= 736:
-        guyX = 736
+    if keys[pygame.K_LEFT] and guyX > vel:
+        guyX -= vel
+        left = True
+        right = False
+        up = False
+        down = False
+    elif keys[pygame.K_RIGHT] and guyX < 800-width-vel:
+        guyX += vel
+        left = False
+        right = True
+        up = False
+        down = False
+    elif keys[pygame.K_UP] and guyY > vel:
+        guyY -= vel
+        left = False
+        right = False
+        up = True
+        down = False
+    elif keys[pygame.K_DOWN] and guyY < 600 - height - vel:
+        guyY +=vel
+        left = False
+        right = False
+        up = False
+        down = True
+    else:
+        left = False
+        right = False
+        up = False
+        down = False
+        walkcount = 0
 
-    if guyY <= 0:
-        guyY = 0
-    elif guyY >= 550:
-        guyY = 550
-
-    draw_sprite(guyX, guyY)
-
-    pygame.display.update()
+    redrawScreen()
+pygame.quit()
