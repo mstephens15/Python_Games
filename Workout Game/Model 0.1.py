@@ -25,17 +25,45 @@ clock = pygame.time.Clock()
 # Background Music
 
 # Sprite
-guy = pygame.image.load('GameAnimations/standing.png')
-guyX = 50
-guyY = 425
 
-    # Sprite Movement
-width = 64
-height = 64
-vel = 5
-left = False
-right = False
-walkCount = 0
+class player():
+    def __init__(self, x, y, width, height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.vel = 5
+        self.left = False
+        self.right = False
+        self.up = False
+        self.down = False
+        self.standing = True
+        self.walkCount = 0
+
+    def draw(self,screen):
+        if (self.walkCount + 1) >= 27:
+            self.walkCount = 0
+
+        if not(self.standing):
+            if self.left:
+                screen.blit(walkLeft[self.walkCount//3], (self.x,self.y))
+                self.walkCount += 1
+            elif self.right:
+                screen.blit(walkRight[self.walkCount//3], (self.x,self.y))
+                self.walkCount += 1
+            elif self.up or self.down:
+                screen.blit(character, (self.x, self.y))
+        else:
+            if self.right:
+                screen.blit(walkRight[0], (self.x, self.y))
+            elif self.left:
+                screen.blit(walkLeft[0], (self.x, self.y))
+            elif self.up or self.down:
+                screen.blit(character, (self.x, self.y))
+            else:
+                screen.blit(character, (self.x, self.y))
+
+man = player(50, 425, 64, 64)
 
     # Animations
 walkRight = [pygame.image.load('GameAnimations/R1.png'), pygame.image.load('GameAnimations/R2.png'), pygame.image.load('GameAnimations/R3.png'),
@@ -44,7 +72,7 @@ walkRight = [pygame.image.load('GameAnimations/R1.png'), pygame.image.load('Game
 walkLeft = [pygame.image.load('GameAnimations/L1.png'), pygame.image.load('GameAnimations/L2.png'), pygame.image.load('GameAnimations/L3.png'),
             pygame.image.load('GameAnimations/L4.png'), pygame.image.load('GameAnimations/L5.png'), pygame.image.load('GameAnimations/L6.png'),
             pygame.image.load('GameAnimations/L7.png'), pygame.image.load('GameAnimations/L8.png'), pygame.image.load('GameAnimations/L9.png')]
-
+character = pygame.image.load('GameAnimations/standing.png')
 # Level 1
 level1Img = pygame.image.load("cotton-pad.png")
 level1X = 368
@@ -75,24 +103,8 @@ for i in range(num_trees):
 
 ## Functions
 def redrawScreen():
-    global walkCount
-
-    if (walkCount + 1) >= 27:
-        walkCount = 0
-
-    if left:
-        screen.blit(walkLeft[walkCount//3], (guyX,guyY))
-        walkCount += 1
-        pygame.display.update()
-
-    elif right:
-        screen.blit(walkRight[walkCount//3], (guyX,guyY))
-        walkCount += 1
-        pygame.display.update()
-
-    else:
-        screen.blit(guy, (guyX,guyY))
-        pygame.display.update()
+    man.draw(screen)
+    pygame.display.update()
 
 def draw_level(x, y):
     screen.blit(level1Img, (x, y))
@@ -102,9 +114,6 @@ def draw_level2(x, y):
 
 def draw_trees(x, y, i):
     screen.blit(treeImg[i], (x, y))
-
-def draw_sprite(x, y):
-    screen.blit(guy, (x, y))
 
 def text_objects(text, font):
     textSurface = font.render(text, True, black)
@@ -134,8 +143,7 @@ def replace(x, y):
 # Window Loop
 running = True
 while running:
-    pygame.time.delay(20)
-    clock.tick(27)
+    clock.tick(45)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -165,36 +173,37 @@ while running:
     keys = pygame.key.get_pressed()
 
 
-    if keys[pygame.K_LEFT] and guyX > vel:
-        guyX -= vel
-        left = True
-        right = False
-        up = False
+    if keys[pygame.K_LEFT] and man.x > man.vel:
+        man.x -= man.vel
+        man.left = True
+        man.right = False
+        man.up = False
+        man.down = False
+        man.standing = False
+    elif keys[pygame.K_RIGHT] and man.x < 800-man.width-man.vel:
+        man.x += man.vel
+        man.left = False
+        man.right = True
+        man.up = False
         down = False
-    elif keys[pygame.K_RIGHT] and guyX < 800-width-vel:
-        guyX += vel
-        left = False
-        right = True
-        up = False
-        down = False
-    elif keys[pygame.K_UP] and guyY > vel:
-        guyY -= vel
-        left = False
-        right = False
-        up = True
-        down = False
-    elif keys[pygame.K_DOWN] and guyY < 600 - height - vel:
-        guyY +=vel
-        left = False
-        right = False
-        up = False
-        down = True
+        man.standing = False
+    elif keys[pygame.K_UP] and man.y > man.vel:
+        man.y -= man.vel
+        man.left = False
+        man.right = False
+        man.up = True
+        man.down = False
+        man.standing = False
+    elif keys[pygame.K_DOWN] and man.y < 600 - man.height - man.vel:
+        man.y += man.vel
+        man.left = False
+        man.right = False
+        man.up = False
+        man.down = True
+        man.standing = False
     else:
-        left = False
-        right = False
-        up = False
-        down = False
-        walkcount = 0
+        man.standing = True
+        man.walkcount = 0
 
     redrawScreen()
 pygame.quit()
