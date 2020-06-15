@@ -1,6 +1,4 @@
-#!/bin/sh
-'''exec' "/Users/Mitch/Desktop/Python_Games/Workout Game/venv/bin/python" "$0" "$@"
-' '''
+#!/Users/Mitch/Desktop/Python_Games/Basics/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
