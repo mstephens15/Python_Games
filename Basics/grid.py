@@ -28,8 +28,8 @@ GRID = [
     [Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt],
 ]
 
-Tilesize = 40
+Tilesize = 50
 Mapwidth = 20
-Mapheight = 11
+Mapheight = 10
 
 displaysurf = pygame.display.set_mode((Mapwidth*Tilesize, Mapheight*Tilesize))
