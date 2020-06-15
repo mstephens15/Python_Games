@@ -1,6 +1,5 @@
 import pygame
 import random
-import time
 from pygame import mixer  # For background music and sounds
 
 # Done every time
@@ -8,6 +7,15 @@ pygame.init()
 
 # Screen
 screen = pygame.display.set_mode((800,600))
+
+# Animations
+walkRight = [pygame.image.load('GameAnimations/R1.png'), pygame.image.load('GameAnimations/R2.png'), pygame.image.load('GameAnimations/R3.png'),
+             pygame.image.load('GameAnimations/R4.png'), pygame.image.load('GameAnimations/R5.png'), pygame.image.load('GameAnimations/R6.png'),
+             pygame.image.load('GameAnimations/R7.png'), pygame.image.load('GameAnimations/R8.png'), pygame.image.load('GameAnimations/R9.png')]
+walkLeft = [pygame.image.load('GameAnimations/L1.png'), pygame.image.load('GameAnimations/L2.png'), pygame.image.load('GameAnimations/L3.png'),
+            pygame.image.load('GameAnimations/L4.png'), pygame.image.load('GameAnimations/L5.png'), pygame.image.load('GameAnimations/L6.png'),
+            pygame.image.load('GameAnimations/L7.png'), pygame.image.load('GameAnimations/L8.png'), pygame.image.load('GameAnimations/L9.png')]
+character = pygame.image.load('GameAnimations/standing.png')
 
 # Constants
 bright_green = (0, 255, 0)
@@ -21,6 +29,7 @@ right = pygame.K_RIGHT
 up = pygame.K_UP
 down = pygame.K_DOWN
 clock = pygame.time.Clock()
+# -----------------------------------------------------------------------------------------------
 
 # Background Music
 
@@ -63,23 +72,21 @@ class player():
             else:
                 screen.blit(character, (self.x, self.y))
 
-man = player(50, 425, 64, 64)
+class trees(object):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
 
-    # Animations
-walkRight = [pygame.image.load('GameAnimations/R1.png'), pygame.image.load('GameAnimations/R2.png'), pygame.image.load('GameAnimations/R3.png'),
-             pygame.image.load('GameAnimations/R4.png'), pygame.image.load('GameAnimations/R5.png'), pygame.image.load('GameAnimations/R6.png'),
-             pygame.image.load('GameAnimations/R7.png'), pygame.image.load('GameAnimations/R8.png'), pygame.image.load('GameAnimations/R9.png')]
-walkLeft = [pygame.image.load('GameAnimations/L1.png'), pygame.image.load('GameAnimations/L2.png'), pygame.image.load('GameAnimations/L3.png'),
-            pygame.image.load('GameAnimations/L4.png'), pygame.image.load('GameAnimations/L5.png'), pygame.image.load('GameAnimations/L6.png'),
-            pygame.image.load('GameAnimations/L7.png'), pygame.image.load('GameAnimations/L8.png'), pygame.image.load('GameAnimations/L9.png')]
-character = pygame.image.load('GameAnimations/standing.png')
+man = player(50, 425, 64, 64)
+trees = []
+
 # Level 1
-level1Img = pygame.image.load("cotton-pad.png")
+level1Img = pygame.image.load("Sprites/cotton-pad.png")
 level1X = 368
 level1Y = 450
 
 # Level 2
-level2Img = pygame.image.load("cotton-pad.png")
+level2Img = pygame.image.load("Sprites/cotton-pad.png")
 level2X = 368
 level2Y = 336
 
@@ -95,7 +102,7 @@ tree_rightY = []
 num_trees = 50
 
 for i in range(num_trees):
-    treeImg.append(pygame.image.load("tree.png"))
+    treeImg.append(pygame.image.load("Sprites/tree.png"))
     tree_leftX.append(random.randint(0,300))
     tree_leftY.append(random.randint(0,550))
     tree_rightX.append(random.randint(450,750))
@@ -134,7 +141,7 @@ def draw_button(msg, x, y, w, h, inactive, active):
 
 def replace(x, y):
     transparent = (0,0,0,0)
-    replaceImg = pygame.image.load("tree.png")
+    replaceImg = pygame.image.load("Sprites/tree.png")
     click = pygame.mouse.get_pressed()
     if click[0] == 1:
         level1Img.fill(transparent)
@@ -143,12 +150,18 @@ def replace(x, y):
 # Window Loop
 running = True
 while running:
+    # Always necessary
+
     clock.tick(45)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+    # Fill screen
 
     screen.fill((100,150,180))
+
+    # Making trees
+
 
     draw_level(level1X, level1Y)
     draw_level2(level2X, level2Y)
@@ -160,14 +173,6 @@ while running:
 
     # Lines between levels
     pygame.draw.line(screen, black, (level1X + 32,level1Y), (level2X + 32,level2Y + 64), 5)
-
-    # for event in pygame.event.get():
-    #     if event.type == pygame.MOUSEBUTTONDOWN:
-    #         print("works")
-    #         level1Img.fill((0,0,0,0))
-    #         replace(level1X, level1Y)
-    # replace(level1X, level1Y)
-
 
     # Movement
     keys = pygame.key.get_pressed()
