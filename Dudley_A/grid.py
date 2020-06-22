@@ -10,3 +10,4 @@ FPS = 60
 BGCOLOR = darkgrey
 
 PLAYER_SPEED = 300
+PLAYER_IMG = 'manBlue_gun.png'

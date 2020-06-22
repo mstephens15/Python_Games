@@ -1,7 +1,7 @@
 from sprite import *
-from grid import *
 import sys
 from os import path
+from tilemap import *
 
 
 class Game:
@@ -19,21 +19,21 @@ class Game:
 
     def load_data(self):
         game_folder = path.dirname(__file__)
-        self.map_data = []
-        with open(path.join(game_folder, 'map.txt'), 'rt') as f:
-            for line in f:
-                self.map_data.append(line)
+        img_folder = path.join(game_folder, 'img')
+        self.map = Map(path.join(game_folder, 'map2.txt'))
+        self.player_img = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()
 
     def new(self):
         # initialize all variables and do all the setup for a new game
         self.all_sprites = pg.sprite.Group()  # creating the sprites group
         self.walls = pg.sprite.Group()        # creating the walls group
-        for row, tiles in enumerate(self.map_data):  # Enumerate gets item and index number
+        for row, tiles in enumerate(self.map.data):  # Enumerate gets item and index number
             for col, tile in enumerate(tiles):
                 if tile == '1':
                     Wall(self, col, row)
                 if tile == "P":
                     self.player = Player(self, col, row)
+        self.camera = Camera(self.map.width, self.map.height)
 
     def run(self):
         # game loop - set self.playing = False to end the game
@@ -51,6 +51,7 @@ class Game:
     def update(self):
         # update portion of the game loop
         self.all_sprites.update()
+        self.camera.update(self.player)  # can switch out self.player to have the camera track any sprite we want
 
     def draw_grid(self):
         for x in range(0, WIDTH, TILESIZE):
@@ -61,7 +62,8 @@ class Game:
     def draw(self):
         self.screen.fill(BGCOLOR)
         self.draw_grid()
-        self.all_sprites.draw(self.screen)
+        for sprite in self.all_sprites:
+            self.screen.blit(sprite.image, self.camera.apply(sprite))  # applying the camera to the sprite
         pg.display.flip()
 
     def events(self):
