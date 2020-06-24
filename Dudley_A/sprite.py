@@ -2,6 +2,7 @@ import pygame as pg
 from grid import *
 from tilemap import collide_hit_rect
 vec = pg.math.Vector2
+from random import uniform      # gives real number between bounds
 
 def collide_with_walls(sprite, group, dir):
     if dir == 'x':  # if the collision is horizontal, i.e. from x
@@ -36,6 +37,7 @@ class Player(pg.sprite.Sprite):
         self.vel = vec(0, 0)                   # Velocity
         self.pos = vec(x, y) * TILESIZE
         self.rot = 0                           # how far we've rotated
+        self.last_shot = 0                     # havent shot yet when we spawn
 
     def get_keys(self):
         self.rot_speed = 0          # setting rotation speed
@@ -49,6 +51,14 @@ class Player(pg.sprite.Sprite):
             self.vel = vec(PLAYER_SPEED, 0).rotate(-self.rot)   # move forwards by coordinates (playerspeed, 0), but rotate based on self.rot
         if keys[pg.K_DOWN] or keys[pg.K_s]:
             self.vel = vec(-PLAYER_SPEED / 2, 0).rotate(-self.rot)
+        if keys[pg.K_SPACE]:
+            now = pg.time.get_ticks()
+            if now - self.last_shot > BULLET_RATE:
+                self.last_shot = now
+                dir = vec(1, 0).rotate(-self.rot)
+                pos = self.pos + BARREL_OFFSET.rotate(-self.rot)        # this position of the bullet is offset from the center of the player
+                Bullet(self.game, pos, dir)
+                self.vel = vec(-KICKBACK, 0).rotate(-self.rot)          # gives a little kickback when shooting
 
     def update(self):
         self.get_keys()
@@ -92,6 +102,27 @@ class Mob(pg.sprite.Sprite):
         self.hit_rect.centery = self.pos.y
         collide_with_walls(self, self.game.walls, 'y')
         self.rect.center = self.hit_rect.center
+
+class Bullet(pg.sprite.Sprite):
+    def __init__(self, game, pos, dir):
+        self.groups = game.all_sprites, game.bullets
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = game.bullet_img                # loaded in load_data in main
+        self.rect = self.image.get_rect()
+        self.pos = vec(pos)                         # has a vector that is the same number, but is a copy so the player doesn't go where the bullet should
+        self.rect.center = pos
+        spread = uniform(-GUN_SPREAD, GUN_SPREAD)        # gives the bullet a random spread
+        self.vel = dir.rotate(spread) * BULLET_SPEED     # randomly rotate the vector by the spread; BULLET_SPEED actually makes it go
+        self.spawn_time = pg.time.get_ticks()            # lets us know when to delete the bullet
+
+    def update(self):
+        self.pos += self.vel * self.game.dt         # move at our velocity
+        self.rect.center = self.pos
+        if pg.sprite.spritecollideany(self, self.game.walls):    # if it hits any wall, delete it
+            self.kill()
+        if pg.time.get_ticks() - self.spawn_time > BULLET_LIFE:  # if the bullet has traveled too long, delete it
+            self.kill()
 
 class Wall(pg.sprite.Sprite):
     def __init__(self, game, x, y):

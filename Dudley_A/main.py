@@ -22,6 +22,7 @@ class Game:
         img_folder = path.join(game_folder, 'img')
         self.map = Map(path.join(game_folder, 'map2.txt'))
         self.player_img = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()
+        self.bullet_img = pg.image.load(path.join(img_folder, BULLET_IMG)).convert_alpha()
         self.mob_img = pg.image.load(path.join(img_folder, MOB_IMG)).convert_alpha()
         self.wall_img = pg.image.load(path.join(img_folder, WALL_IMG)).convert_alpha()
         self.wall_img = pg.transform.scale(self.wall_img, (TILESIZE,TILESIZE))
@@ -31,7 +32,8 @@ class Game:
         self.all_sprites = pg.sprite.Group()  # creating the sprites group
         self.walls = pg.sprite.Group()        # creating the walls group
         self.mobs = pg.sprite.Group()
-        for row, tiles in enumerate(self.map.data):  # Enumerate gets item and index number
+        self.bullets = pg.sprite.Group()
+        for row, tiles in enumerate(self.map.data):  # Enumerate gets item and index number; this is to create the tiles
             for col, tile in enumerate(tiles):
                 if tile == '1':
                     Wall(self, col, row)
@@ -58,6 +60,9 @@ class Game:
         # update portion of the game loop
         self.all_sprites.update()
         self.camera.update(self.player)  # can switch out self.player to have the camera track any sprite we want
+        hits = pg.sprite.groupcollide(self.mobs, self.bullets, False, True)     # zombie doesnt disappear, bullets do
+        for hit in hits:
+            hit.kill()
 
     def draw_grid(self):
         for x in range(0, WIDTH, TILESIZE):
