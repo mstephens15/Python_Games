@@ -39,3 +39,14 @@ BULLET_RATE = 150    # how fast can we shoot the bullets
 KICKBACK = 200
 GUN_SPREAD = 5
 BULLET_DAMAGE = 10
+
+# Effects
+MUZZLE_FLASHES = ['whitePuff15.png', 'whitePuff16.png', 'whitePuff17.png']
+FLASH_DURATION = 40
+
+# Layers
+WALL_LAYER = 1
+PLAYER_LAYER = 2
+MOB_LAYER = 2
+BULLET_LAYER = 3
+EFFECTS_LAYER = 4
