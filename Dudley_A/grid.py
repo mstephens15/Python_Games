@@ -27,8 +27,9 @@ MOB_HEALTH = 100
 MOB_DAMAGE = 10
 MOB_KNOCKBACK = 30
 MOB_IMG = 'zombie1_hold.png'
-MOB_SPEED = 150
+MOB_SPEEDS = [150, 125, 100, 125, 150]
 MOB_HIT_RECT = pg.Rect(0, 0, 30, 30)
+AVOID_RADIUS = 50
 
 # Gun settings
 BULLET_IMG = 'bullet.png'

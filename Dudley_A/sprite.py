@@ -2,7 +2,7 @@ import pygame as pg
 from grid import *
 from tilemap import collide_hit_rect
 vec = pg.math.Vector2
-from random import uniform      # gives real number between bounds
+from random import uniform, choice      # gives real number between bounds
 
 def collide_with_walls(sprite, group, dir):
     if dir == 'x':  # if the collision is horizontal, i.e. from x
@@ -32,10 +32,11 @@ class Player(pg.sprite.Sprite):
         self.game = game
         self.image = game.player_img
         self.rect = self.image.get_rect()      # required
+        self.rect.center = (x, y)              # fixes the bug of the guy moving around when placing new walls
         self.hit_rect = PLAYER_HIT_RECT        # spawning the hitbox of the player
         self.hit_rect.center = self.rect.center  # center of image is same as center of hitbox
         self.vel = vec(0, 0)                   # Velocity
-        self.pos = vec(x, y) * TILESIZE
+        self.pos = vec(x, y)
         self.rot = 0                           # how far we've rotated
         self.last_shot = 0                     # havent shot yet when we spawn
         self.health = PLAYER_HEALTH
@@ -81,21 +82,33 @@ class Mob(pg.sprite.Sprite):
         self.game = game
         self.image = game.mob_img
         self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
         self.hit_rect = MOB_HIT_RECT.copy()
         self.hit_rect.center = self.rect.center
-        self.pos = vec(x, y) * TILESIZE
+        self.pos = vec(x, y)
         self.vel = vec(0, 0)
-        self.acc = vec(0, 0)  # accelation, so mob doesnt turn super fast
+        self.acc = vec(0, 0)  # acceleration, so mob doesnt turn super fast
         self.rect.center = self.pos
         self.rot = 0
         self.health = MOB_HEALTH
+        self.speed = choice(MOB_SPEEDS)             # choose random number from list of speeds
+
+    def avoid_mobs(self):
+        for mob in self.game.mobs:          # for every mob that isnt a specific mob we select
+            if mob != self:
+                dist = self.pos - mob.pos           # the distance between our first mob and any other mob
+                if 0 < dist.length() < AVOID_RADIUS:
+                    self.acc += dist.normalize()        # makes the vector a length of one
+
 
     def update(self):
         self.rot = (self.game.player.pos - self.pos).angle_to(vec(1, 0)) # get the angle between player and mob
         self.image = pg.transform.rotate(self.game.mob_img, self.rot)    # update mob angle to go towards player
         self.rect = self.image.get_rect()     # makes him spin based on center of mob, not top lefthand of png
         self.rect.center = self.pos             # makes him position around where we originally put him on the map
-        self.acc = vec(MOB_SPEED, 0).rotate(-self.rot)  # move towards the player
+        self.acc = vec(1, 0).rotate(-self.rot)  # move towards the player
+        self.avoid_mobs()
+        self.acc.scale_to_length(self.speed)             # takes the vector of 1 and gives it the speed
         self.acc += self.vel * -1                       # makes him hit a max speed he cant go higher than
         self.vel += self.acc * self.game.dt
         self.pos += self.vel * self.game.dt + 0.5 * self.acc * self.game.dt ** 2
@@ -126,6 +139,7 @@ class Bullet(pg.sprite.Sprite):
         self.game = game
         self.image = game.bullet_img                # loaded in load_data in main
         self.rect = self.image.get_rect()
+        self.hit_rect = self.rect
         self.pos = vec(pos)                         # has a vector that is the same number, but is a copy so the player doesn't go where the bullet should
         self.rect.center = pos
         spread = uniform(-GUN_SPREAD, GUN_SPREAD)        # gives the bullet a random spread
@@ -140,14 +154,29 @@ class Bullet(pg.sprite.Sprite):
         if pg.time.get_ticks() - self.spawn_time > BULLET_LIFE:  # if the bullet has traveled too long, delete it
             self.kill()
 
-class Wall(pg.sprite.Sprite):
-    def __init__(self, game, x, y):
-        self.groups = game.all_sprites, game.walls
-        pg.sprite.Sprite.__init__(self, self.groups)  # simply required for it to function
+# we arent drawing these, they will stay invisible; just has a rectangle
+class Obstacle(pg.sprite.Sprite):
+    def __init__(self, game, x, y, w, h):
+        self.groups = game.walls
+        pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = game.wall_img
-        self.rect = self.image.get_rect()
+        self.rect = pg.Rect(x, y, w, h)
+        self.hit_rect = self.rect
         self.x = x
         self.y = y
-        self.rect.x = x * TILESIZE
-        self.rect.y = y * TILESIZE
+        self.rect.x = x
+        self.rect.y = y
+
+    # took this out because we are now using Tiled obstacles, go back to this for reference
+# class Wall(pg.sprite.Sprite):
+#     def __init__(self, game, x, y):
+#         self.groups = game.all_sprites, game.walls
+#         pg.sprite.Sprite.__init__(self, self.groups)  # simply required for it to function
+#         self.game = game
+#         self.image = game.wall_img
+#         self.rect = self.image.get_rect()
+#         self.x = x
+#         self.y = y
+#         self.rect.x = x * TILESIZE
+#         self.rect.y = y * TILESIZE
+
