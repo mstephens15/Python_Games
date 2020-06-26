@@ -41,14 +41,18 @@ class Game:
         self.map = TiledMap(path.join(map_folder, 'level1.tmx'))
         self.map_img = self.map.make_map()
         self.map_rect = self.map_img.get_rect()
-        self.player_img = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()
-        self.bullet_img = pg.image.load(path.join(img_folder, BULLET_IMG)).convert_alpha()
-        self.mob_img = pg.image.load(path.join(img_folder, MOB_IMG)).convert_alpha()
-        self.wall_img = pg.image.load(path.join(img_folder, WALL_IMG)).convert_alpha()
-        self.wall_img = pg.transform.scale(self.wall_img, (TILESIZE,TILESIZE))
-        self.gun_flashes = []
+        self.player_img = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()      # player img
+        self.bullet_img = pg.image.load(path.join(img_folder, BULLET_IMG)).convert_alpha()      # bullet img
+        self.mob_img = pg.image.load(path.join(img_folder, MOB_IMG)).convert_alpha()            # zombie img
+        self.wall_img = pg.image.load(path.join(img_folder, WALL_IMG)).convert_alpha()          # wall img
+        self.wall_img = pg.transform.scale(self.wall_img, (TILESIZE,TILESIZE))                  # converts the wall img size to what we want because that would be hard to do in Tiled app
+        self.gun_flashes = []       # list to hold the 3 muzzle flash effects
         for img in MUZZLE_FLASHES:
-            self.gun_flashes.append(pg.image.load(path.join(img_folder, img)).convert_alpha())
+            self.gun_flashes.append(pg.image.load(path.join(img_folder, img)).convert_alpha())    # puts all the muzzle flash pngs in that list that we can now mess with
+        self.item_images = {}       # dictionary to hold all of the item images keys and values
+        for item in ITEM_IMAGES:
+            self.item_images[item] = pg.image.load(path.join(img_folder, ITEM_IMAGES[item])).convert_alpha()    # different from the one above, because we wont be selecting these randomly
+
 
 
     def new(self):
@@ -57,6 +61,7 @@ class Game:
         self.walls = pg.sprite.Group()        # creating the walls group
         self.mobs = pg.sprite.Group()
         self.bullets = pg.sprite.Group()
+        self.items = pg.sprite.Group()
         # for row, tiles in enumerate(self.map.data):  # Enumerate gets item and index number; this is to create the tiles
         #     for col, tile in enumerate(tiles):
         #         if tile == '1':
@@ -66,12 +71,16 @@ class Game:
         #         if tile == "M":
         #             self.mob = Mob(self, col, row)
         for tile_object in self.map.tmxdata.objects:            # holds all objects from all objects layers
+            obj_center = vec(tile_object.x + tile_object.width / 2,
+                             tile_object.y + tile_object.height / 2)          # centers the spawn points around the boxes in Tiled
             if tile_object.name == 'player':
-                self.player = Player(self, tile_object.x, tile_object.y)        # spawn player
+                self.player = Player(self, obj_center.x, obj_center.y)        # spawn player
             if tile_object.name == 'zombie':
-                Mob(self, tile_object.x, tile_object.y)
+                Mob(self, obj_center.x, obj_center.y)
             if tile_object.name == 'wall':
                 Obstacle(self, tile_object.x, tile_object.y, tile_object.width, tile_object.height)   # spawn obstacle
+            if tile_object.name in ['health']:
+                Item(self, obj_center, tile_object.name)
         self.camera = Camera(self.map.width, self.map.height)
         self.draw_debug = False
 
@@ -98,6 +107,13 @@ class Game:
         for hit in hits:
             hit.health -= BULLET_DAMAGE
             hit.vel = vec(0,0)
+
+      # player picks up item
+        hits = pg.sprite.spritecollide(self.player, self.items, False)
+        for hit in hits:
+            if hit.type == 'health' and self.player.health < PLAYER_HEALTH:
+                hit.kill()
+                self.player.add_health(HEALTH_PACK_AMOUNT)
 
       # mob hits player
         hits = pg.sprite.spritecollide(self.player, self.mobs, False, collide_hit_rect)
