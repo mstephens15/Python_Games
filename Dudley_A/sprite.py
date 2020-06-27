@@ -3,6 +3,7 @@ from grid import *
 from tilemap import collide_hit_rect
 vec = pg.math.Vector2
 from random import uniform, choice, randint      # gives real number between bounds
+import pytweening as tween
 
 def collide_with_walls(sprite, group, dir):
     if dir == 'x':  # if the collision is horizontal, i.e. from x
@@ -188,6 +189,18 @@ class Item(pg.sprite.Sprite):
         self.type = type
         self.rect.center = pos
         self.pos = pos
+        self.tween = tween.easeInOutSine
+        self.step = 0
+        self.dir = 1        # for changing directions
+
+    def update(self):
+        # bobbing motion
+        offset = BOB_RANGE * (self.tween(self.step / BOB_RANGE) - 0.5)  # Need 0.5 because we are starting at middle of rectangle
+        self.rect.centery = self.pos.y + offset * self.dir
+        self.step += BOB_SPEED
+        if self.step > BOB_RANGE:
+            self.step = 0
+            self.dir *= -1
 
 class MuzzleFlash(pg.sprite.Sprite):
     def __init__(self, game, pos):
