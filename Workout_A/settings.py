@@ -17,3 +17,9 @@ BGCOLOR = DARKGREY
 TILESIZE = 32
 GRIDWIDTH = WIDTH / TILESIZE
 GRIDHEIGHT = HEIGHT / TILESIZE
+
+# player settings
+PLAYER_IMG = 'manBlue_gun.png'
+
+# wall settings
+WALL_IMG = 'tileGreen_39.png'
