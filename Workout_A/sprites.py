@@ -1,12 +1,18 @@
+<<<<<<< HEAD
 from settings import *
 vec = pg.math.Vector2
 from tiledmap import collide_hit_rect
+=======
+import pygame as pg
+from settings import *
+>>>>>>> d79e971bfc59112cb07698c087686def975adb0a
 
 class Player(pg.sprite.Sprite):
     def __init__(self, game, x, y):
         self.groups = game.all_sprites
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
+<<<<<<< HEAD
         self.image = game.player_img            # required for ALL classes; gets the sprite image
         self.rect = self.image.get_rect()       # required for ALL classes; gets the rectangle of the sprite image
         self.hit_rect = PLAYER_HIT_RECT
@@ -29,12 +35,20 @@ class Player(pg.sprite.Sprite):
             self.vel = vec(PLAYER_SPEED, 0).rotate(-self.rot)
         if keys[pg.K_DOWN] or keys[pg.K_s]:
             self.vel = vec(-PLAYER_SPEED / 2, 0).rotate(-self.rot)
+=======
+        self.image = pg.Surface((TILESIZE, TILESIZE))
+        self.image.fill(YELLOW)
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+>>>>>>> d79e971bfc59112cb07698c087686def975adb0a
 
     def move(self, dx=0, dy=0):
         self.x += dx
         self.y += dy
 
     def update(self):
+<<<<<<< HEAD
         self.get_keys()
         self.rot = (self.rot + self.rot_speed * self.game.dt) % 360
         self.image = pg.transform.rotate(self.game.player_img, self.rot)    # rotates the actual img
@@ -66,6 +80,10 @@ class Player(pg.sprite.Sprite):
                     self.pos.y = hits[0].rect.bottom + self.hit_rect.height / 2.0
                 self.vel.y = 0
                 self.hit_rect.centery = self.pos.y
+=======
+        self.rect.x = self.x * TILESIZE
+        self.rect.y = self.y * TILESIZE
+>>>>>>> d79e971bfc59112cb07698c087686def975adb0a
 
 class Wall(pg.sprite.Sprite):
     def __init__(self, game, x, y):

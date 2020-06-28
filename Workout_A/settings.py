@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 import pygame as pg
 
+=======
+>>>>>>> d79e971bfc59112cb07698c087686def975adb0a
 # define some colors (R, G, B)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -21,11 +24,15 @@ GRIDWIDTH = WIDTH / TILESIZE
 GRIDHEIGHT = HEIGHT / TILESIZE
 
 # player settings
+<<<<<<< HEAD
 PLAYER_SPEED = 300
 PLAYER_IMG = 'manBlue_gun.png'
 PLAYER_ROT_SPEED = 250
 PLAYER_HIT_RECT = pg.Rect(0, 0, 35, 35)
 
+=======
+PLAYER_IMG = 'manBlue_gun.png'
+>>>>>>> d79e971bfc59112cb07698c087686def975adb0a
 
 # wall settings
 WALL_IMG = 'tileGreen_39.png'

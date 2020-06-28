@@ -7,6 +7,7 @@ from settings import *
 
 class Game:
     def __init__(self):
+<<<<<<< HEAD
         pg.init()                                               # required
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))      # required: from settings
         pg.display.set_caption(TITLE)                           # title
@@ -22,6 +23,25 @@ class Game:
         self.map_img = self.map.make_map()                      # loads the full map
         self.map_rect = self.map_img.get_rect()                 # makes the rectangle of the map
         self.player_img = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()    # keeps the transparent background that way
+=======
+        pg.init()
+        self.screen = pg.display.set_mode((WIDTH, HEIGHT))
+        pg.display.set_caption(TITLE)
+        self.clock = pg.time.Clock()
+        pg.key.set_repeat(500, 100)
+        self.load_data()
+
+    def load_data(self):
+        game_folder = path.dirname(__file__)
+        img_folder = path.join(game_folder, 'img')
+        map_folder = path.join(game_folder, 'maps')
+        self.map = TiledMap(path.join(map_folder, 'level1.tmx'))
+        self.map_img = self.map.make_map()
+        self.map_rect = self.map_img.get_rect()
+        self.player_img = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()
+        self.wall_img = pg.image.load(path.join(img_folder, WALL_IMG)).convert_alpha()
+        self.wall_img = pg.transform.scale(self.wall_img, (TILESIZE, TILESIZE))
+>>>>>>> d79e971bfc59112cb07698c087686def975adb0a
 
     def new(self):
         # initialize all variables and do all the setup for a new game
@@ -46,7 +66,10 @@ class Game:
     def update(self):
         # update portion of the game loop
         self.all_sprites.update()
+<<<<<<< HEAD
         self.camera.update(self.player)
+=======
+>>>>>>> d79e971bfc59112cb07698c087686def975adb0a
 
     def draw_grid(self):
         for x in range(0, WIDTH, TILESIZE):
@@ -58,7 +81,11 @@ class Game:
         self.screen.blit(self.map_img, self.camera.apply_rect(self.map_rect))
         for sprite in self.all_sprites:
             self.screen.blit(sprite.image, self.camera.apply(sprite))
+<<<<<<< HEAD
         pg.display.flip()                               # think of whiteboard
+=======
+        pg.display.flip()
+>>>>>>> d79e971bfc59112cb07698c087686def975adb0a
 
     def events(self):
         # catch all events here
