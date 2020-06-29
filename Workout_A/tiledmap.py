@@ -33,10 +33,10 @@ class Camera:
         self.height = height
 
     def apply(self, entity):
-        return entity.rect.move(self.camera.topleft)        # gives new rectangle shifted by .topleft amount
+        return entity.rect.move(self.camera.topleft)        # idk what this does
 
     def apply_rect(self, rect):
-        return rect.move(self.camera.topleft)
+        return rect.move(self.camera.topleft)               # idk what this does either
 
     def update(self, target):                               # target is the sprite we are following
         x = -target.rect.centerx + int(WIDTH / 2)           # go in the opposite direction of the player; half the screen size to keep the player centered

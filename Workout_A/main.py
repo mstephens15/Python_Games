@@ -22,13 +22,20 @@ class Game:
         self.map_img = self.map.make_map()                      # loads the full map
         self.map_rect = self.map_img.get_rect()                 # makes the rectangle of the map
         self.player_img = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()    # keeps the transparent background that way
+        self.wall_img = pg.image.load(path.join(img_folder, WALL_IMG)).convert_alpha()
+        self.wall_img = pg.transform.scale(self.wall_img, (TILESIZE, TILESIZE))
 
     def new(self):
         # initialize all variables and do all the setup for a new game
         self.all_sprites = pg.sprite.Group()
         self.walls = pg.sprite.Group()
-        self.player = Player(self, 10, 10)
         self.camera = Camera(self.map.width, self.map.height)
+        for tile_object in self.map.tmxdata.objects:            # .objects gets all the object layers
+            if tile_object.name == 'player':
+                self.player = Player(self, tile_object.x, tile_object.y)
+            if tile_object.name == 'wall':
+                Obstacle(self, tile_object.x, tile_object.y, tile_object.width, tile_object.height)
+        self.draw_debug = False
 
     def run(self):
         # game loop - set self.playing = False to end the game
@@ -55,9 +62,16 @@ class Game:
             pg.draw.line(self.screen, LIGHTGREY, (0, y), (WIDTH, y))
 
     def draw(self):
-        self.screen.blit(self.map_img, self.camera.apply_rect(self.map_rect))
+        pg.display.set_caption("{:.2f}".format(self.clock.get_fps()))
+        self.screen.blit(self.map_img, self.camera.apply_rect(self.map_rect))    # drawing the mpa
         for sprite in self.all_sprites:
-            self.screen.blit(sprite.image, self.camera.apply(sprite))
+            self.screen.blit(sprite.image, self.camera.apply(sprite))           # draw the sprites, apply the camera to the player
+            if self.draw_debug:
+                pg.draw.rect(self.screen, WHITE, self.camera.apply_rect(sprite.hit_rect), 1)  # shows hit rect of sprites
+        if self.draw_debug:
+            for wall in self.walls:                  # shows hit rect of walls
+                pg.draw.rect(self.screen, WHITE, self.camera.apply_rect(wall.rect), 1)
+
         pg.display.flip()                               # think of whiteboard
 
     def events(self):
@@ -68,6 +82,8 @@ class Game:
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
                     self.quit()
+                if event.key == pg.K_h:
+                    self.draw_debug = not self.draw_debug
 
     def show_start_screen(self):
         pass
