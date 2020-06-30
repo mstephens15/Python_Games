@@ -30,6 +30,7 @@ class Player(pg.sprite.Sprite):
         self.game = game
         self.image = game.player_img            # required for ALL classes; gets the sprite image
         self.rect = self.image.get_rect()       # required for ALL classes; gets the rectangle of the sprite image
+        self.rect.center = (x, y)               # fixing the bug where the first frame is put off the map bc of walls
         self.hit_rect = PLAYER_HIT_RECT
         self.hit_rect.center = self.rect.center
         self.vel = vec(0, 0)
