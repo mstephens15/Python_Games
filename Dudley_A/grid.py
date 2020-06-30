@@ -30,6 +30,7 @@ MOB_IMG = 'zombie1_hold.png'
 MOB_SPEEDS = [150, 125, 100, 125, 150]
 MOB_HIT_RECT = pg.Rect(0, 0, 30, 30)
 AVOID_RADIUS = 50
+DETECT_RADIUS = 400
 
 # Gun settings
 BULLET_IMG = 'bullet.png'
@@ -57,3 +58,13 @@ ITEM_IMAGES = {'health': 'health_pack.png'}
 HEALTH_PACK_AMOUNT = 20
 BOB_RANGE = 15
 BOB_SPEED = 0.35
+
+# Sounds
+BG_MUSIC = 'espionage.ogg'
+PLAYER_HIT_SOUNDS = ['pain/8.wav', 'pain/9.wav', 'pain/10.wav', 'pain/11.wav']
+ZOMBIE_MOAN_SOUNDS = ['brains2.wav', 'brains3.wav', 'zombie-roar-1.wav', 'zombie-roar-2.wav',
+                      'zombie-roar-3.wav', 'zombie-roar-5.wav', 'zombie-roar-6.wav', 'zombie-roar-7.wav']
+ZOMBIE_HIT_SOUNDS = ['splat-15.wav']
+WEAPON_SOUNDS_GUN = ['sfx_weapon_singleshot2.wav']
+EFFECTS_SOUNDS = {'level_start': 'level_start.wav',
+                  'health_up': 'health_pack.wav'}

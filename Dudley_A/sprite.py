@@ -2,7 +2,7 @@ import pygame as pg
 from grid import *
 from tilemap import collide_hit_rect
 vec = pg.math.Vector2
-from random import uniform, choice, randint      # gives real number between bounds
+from random import uniform, choice, randint, random      # gives real number between bounds
 import pytweening as tween
 
 def collide_with_walls(sprite, group, dir):
@@ -63,6 +63,7 @@ class Player(pg.sprite.Sprite):
                 pos = self.pos + BARREL_OFFSET.rotate(-self.rot)        # this position of the bullet is offset from the center of the player
                 Bullet(self.game, pos, dir)
                 self.vel = vec(-KICKBACK, 0).rotate(-self.rot)          # gives a little kickback when shooting
+                choice(self.game.weapon_sounds['gun']).play()           # gun sounds
                 MuzzleFlash(self.game, pos)
 
     def update(self):
@@ -89,7 +90,7 @@ class Mob(pg.sprite.Sprite):
         self.groups = game.all_sprites, game.mobs
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = game.mob_img
+        self.image = game.mob_img.copy()        # .copy fixes bug of health bar being drawn on ones not hit because it looks at the overall game iaage when updating
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.hit_rect = MOB_HIT_RECT.copy()
@@ -101,6 +102,7 @@ class Mob(pg.sprite.Sprite):
         self.rot = 0
         self.health = MOB_HEALTH
         self.speed = choice(MOB_SPEEDS)             # choose random number from list of speeds
+        self.target = game.player
 
     def avoid_mobs(self):
         for mob in self.game.mobs:          # for every mob that isnt a specific mob we select
@@ -111,22 +113,27 @@ class Mob(pg.sprite.Sprite):
 
 
     def update(self):
-        self.rot = (self.game.player.pos - self.pos).angle_to(vec(1, 0)) # get the angle between player and mob
-        self.image = pg.transform.rotate(self.game.mob_img, self.rot)    # update mob angle to go towards player
-        self.rect = self.image.get_rect()     # makes him spin based on center of mob, not top lefthand of png
-        self.rect.center = self.pos             # makes him position around where we originally put him on the map
-        self.acc = vec(1, 0).rotate(-self.rot)  # move towards the player
-        self.avoid_mobs()
-        self.acc.scale_to_length(self.speed)             # takes the vector of 1 and gives it the speed
-        self.acc += self.vel * -1                       # makes him hit a max speed he cant go higher than
-        self.vel += self.acc * self.game.dt
-        self.pos += self.vel * self.game.dt + 0.5 * self.acc * self.game.dt ** 2
-        self.hit_rect.centerx = self.pos.x
-        collide_with_walls(self, self.game.walls, 'x')
-        self.hit_rect.centery = self.pos.y
-        collide_with_walls(self, self.game.walls, 'y')
-        self.rect.center = self.hit_rect.center
+        target_dist = self.target.pos - self.pos
+        if target_dist.length_squared() < DETECT_RADIUS**2:          # **2 is square root
+            if random() < 0.002:
+                choice(self.game.zombie_moan_sounds).play()
+            self.rot = target_dist.angle_to(vec(1, 0)) # get the angle between player and mob
+            self.image = pg.transform.rotate(self.game.mob_img, self.rot)    # update mob angle to go towards player
+            self.rect = self.image.get_rect()     # makes him spin based on center of mob, not top lefthand of png
+            self.rect.center = self.pos             # makes him position around where we originally put him on the map
+            self.acc = vec(1, 0).rotate(-self.rot)  # move towards the player
+            self.avoid_mobs()
+            self.acc.scale_to_length(self.speed)             # takes the vector of 1 and gives it the speed
+            self.acc += self.vel * -1                       # makes him hit a max speed he cant go higher than
+            self.vel += self.acc * self.game.dt
+            self.pos += self.vel * self.game.dt + 0.5 * self.acc * self.game.dt ** 2
+            self.hit_rect.centerx = self.pos.x
+            collide_with_walls(self, self.game.walls, 'x')
+            self.hit_rect.centery = self.pos.y
+            collide_with_walls(self, self.game.walls, 'y')
+            self.rect.center = self.hit_rect.center
         if self.health <= 0:                    # if health falls to 0, the zombie is killed
+            choice(self.game.zombie_hit_sounds).play()      # play random zombie hit sound when it dies
             self.kill()
 
     def draw_health(self):

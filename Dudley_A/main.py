@@ -38,6 +38,8 @@ class Game:
         game_folder = path.dirname(__file__)
         img_folder = path.join(game_folder, 'img')
         map_folder = path.join(game_folder, 'maps')
+        snd_folder = path.join(game_folder, 'snd')
+        music_folder = path.join(game_folder, 'music')
         self.map = TiledMap(path.join(map_folder, 'level1.tmx'))
         self.map_img = self.map.make_map()
         self.map_rect = self.map_img.get_rect()
@@ -52,8 +54,26 @@ class Game:
         self.item_images = {}       # dictionary to hold all of the item images keys and values
         for item in ITEM_IMAGES:
             self.item_images[item] = pg.image.load(path.join(img_folder, ITEM_IMAGES[item])).convert_alpha()    # different from the one above, because we wont be selecting these randomly
-
-
+    # Sound loading
+        pg.mixer.music.load(path.join(music_folder, BG_MUSIC))   # loads the music we want
+        self.effects_sounds = {}        # effects sounds, more code in 'player picks up item' in main.py
+        for type in EFFECTS_SOUNDS:
+            self.effects_sounds[type] = pg.mixer.Sound(path.join(snd_folder, EFFECTS_SOUNDS[type]))
+        self.weapon_sounds = {}         # weapon sounds, see (sprite.player.get_keys)
+        self.weapon_sounds['gun'] = []
+        for snd in WEAPON_SOUNDS_GUN:
+            self.weapon_sounds['gun'].append(pg.mixer.Sound(path.join(snd_folder,snd)))
+        self.zombie_moan_sounds = []    # zombie sounds, see (sprite.mob)
+        for snd in ZOMBIE_MOAN_SOUNDS:
+            s = pg.mixer.Sound(path.join(snd_folder,snd))
+            s.set_volume(0.1)                                  # between 0 and 1, 1 is what it currently is
+            self.zombie_moan_sounds.append(s)
+        self.player_hit_sounds = []     # player sounds
+        for snd in PLAYER_HIT_SOUNDS:
+            self.player_hit_sounds.append(pg.mixer.Sound(path.join(snd_folder, snd)))
+        self.zombie_hit_sounds = []     # zombie dying sounds
+        for snd in ZOMBIE_HIT_SOUNDS:
+            self.zombie_hit_sounds.append(pg.mixer.Sound(path.join(snd_folder, snd)))
 
     def new(self):
         # initialize all variables and do all the setup for a new game
@@ -83,10 +103,12 @@ class Game:
                 Item(self, obj_center, tile_object.name)
         self.camera = Camera(self.map.width, self.map.height)
         self.draw_debug = False
+        self.effects_sounds['level_start'].play()
 
     def run(self):
         # game loop - set self.playing = False to end the game
         self.playing = True
+        pg.mixer.music.play(loops=-1)       # -1 makes it repeat
         while self.playing:
             self.dt = self.clock.tick(FPS) / 1000
             self.events()
@@ -113,11 +135,14 @@ class Game:
         for hit in hits:
             if hit.type == 'health' and self.player.health < PLAYER_HEALTH:
                 hit.kill()
+                self.effects_sounds['health_up'].play()     # play sound effect of picking up health
                 self.player.add_health(HEALTH_PACK_AMOUNT)
 
       # mob hits player
         hits = pg.sprite.spritecollide(self.player, self.mobs, False, collide_hit_rect)
         for hit in hits:
+            if random() < 0.7:
+                choice(self.player_hit_sounds).play()       # play random noise of guy saying "ah"
             self.player.health -= MOB_DAMAGE
             hit.vel = vec(0, 0)
             if self.player.health <= 0:
