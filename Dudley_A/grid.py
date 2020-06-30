@@ -31,6 +31,7 @@ MOB_SPEEDS = [150, 125, 100, 125, 150]
 MOB_HIT_RECT = pg.Rect(0, 0, 30, 30)
 AVOID_RADIUS = 50
 DETECT_RADIUS = 400
+SPLAT = 'splat red.png'
 
 # Gun settings
 BULLET_IMG = 'bullet.png'

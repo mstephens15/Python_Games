@@ -34,12 +34,39 @@ class Game:
         icon = pg.image.load("sprites/pokemon.png")
         pg.display.set_icon(icon)
 
+    def draw_text(self, text, font_name, size, color, x, y, align="nw"):
+        font = pg.font.Font(font_name, size)
+        text_surface = font.render(text, True, color)
+        text_rect = text_surface.get_rect()
+        if align == "nw":
+            text_rect.topleft = (x, y)
+        if align == "ne":
+            text_rect.topright = (x, y)
+        if align == "sw":
+            text_rect.bottomleft = (x, y)
+        if align == "se":
+            text_rect.bottomright = (x, y)
+        if align == "n":
+            text_rect.midtop = (x, y)
+        if align == "s":
+            text_rect.midbottom = (x, y)
+        if align == "e":
+            text_rect.midright = (x, y)
+        if align == "w":
+            text_rect.midleft = (x, y)
+        if align == "center":
+            text_rect.center = (x, y)
+        self.screen.blit(text_surface, text_rect)
+
     def load_data(self):
         game_folder = path.dirname(__file__)
         img_folder = path.join(game_folder, 'img')
         map_folder = path.join(game_folder, 'maps')
         snd_folder = path.join(game_folder, 'snd')
         music_folder = path.join(game_folder, 'music')
+        self.title_font = path.join(img_folder, 'ZOMBIE.TTF')                 # title font
+        self.dim_screen = pg.Surface(self.screen.get_size()).convert_alpha()        # dim screen when paused, pt1
+        self.dim_screen.fill((0, 0, 0, 180))                                        # dim screen when paused, pt2
         self.map = TiledMap(path.join(map_folder, 'level1.tmx'))
         self.map_img = self.map.make_map()
         self.map_rect = self.map_img.get_rect()
@@ -48,13 +75,17 @@ class Game:
         self.mob_img = pg.image.load(path.join(img_folder, MOB_IMG)).convert_alpha()            # zombie img
         self.wall_img = pg.image.load(path.join(img_folder, WALL_IMG)).convert_alpha()          # wall img
         self.wall_img = pg.transform.scale(self.wall_img, (TILESIZE,TILESIZE))                  # converts the wall img size to what we want because that would be hard to do in Tiled app
+        self.splat = pg.image.load(path.join(img_folder, SPLAT)).convert_alpha()
+        self.splat = pg.transform.scale(self.splat, (64, 64))                                   # changing splat size from 128x128 to 64x64
         self.gun_flashes = []       # list to hold the 3 muzzle flash effects
         for img in MUZZLE_FLASHES:
             self.gun_flashes.append(pg.image.load(path.join(img_folder, img)).convert_alpha())    # puts all the muzzle flash pngs in that list that we can now mess with
         self.item_images = {}       # dictionary to hold all of the item images keys and values
         for item in ITEM_IMAGES:
             self.item_images[item] = pg.image.load(path.join(img_folder, ITEM_IMAGES[item])).convert_alpha()    # different from the one above, because we wont be selecting these randomly
-    # Sound loading
+
+                # Sound loading
+
         pg.mixer.music.load(path.join(music_folder, BG_MUSIC))   # loads the music we want
         self.effects_sounds = {}        # effects sounds, more code in 'player picks up item' in main.py
         for type in EFFECTS_SOUNDS:
@@ -85,7 +116,7 @@ class Game:
         # for row, tiles in enumerate(self.map.data):  # Enumerate gets item and index number; this is to create the tiles
         #     for col, tile in enumerate(tiles):
         #         if tile == '1':
-        #             Wall(self, col, row)
+        #             Wall( self, col, row)
         #         if tile == "P":
         #             self.player = Player(self, col, row)
         #         if tile == "M":
@@ -102,7 +133,8 @@ class Game:
             if tile_object.name in ['health']:
                 Item(self, obj_center, tile_object.name)
         self.camera = Camera(self.map.width, self.map.height)
-        self.draw_debug = False
+        self.draw_debug = False                                 # whether hit boxes are drawn or not
+        self.paused = False                                     # whether game is paused or not
         self.effects_sounds['level_start'].play()
 
     def run(self):
@@ -112,7 +144,8 @@ class Game:
         while self.playing:
             self.dt = self.clock.tick(FPS) / 1000
             self.events()
-            self.update()
+            if not self.paused:
+                self.update()               # this is what updates everything, making things go in motion; turning off freezes everyhing
             self.draw()
 
     def quit(self):
@@ -156,7 +189,7 @@ class Game:
         for y in range(0, HEIGHT, TILESIZE):
             pg.draw.line(self.screen, lightgrey, (0, y), (WIDTH, y))
 
-    def draw(self):
+    def draw(self):         # drawing everything on screen
         pg.display.set_caption("{:.2f}".format(self.clock.get_fps()))  # checking the fps at the top of the window
         # self.screen.fill(BGCOLOR)
         self.screen.blit(self.map_img, self.camera.apply_rect(self.map_rect))       # draws the map
@@ -174,6 +207,9 @@ class Game:
         # pg.draw.rect(self.screen, white, self.player.hit_rect, 2)  # draws little white box around hitbox
         # HUD functions
         draw_player_health(self.screen, 10, 10, self.player.health / PLAYER_HEALTH)
+        if self.paused:
+            self.screen.blit(self.dim_screen, (0, 0))                                                        # put it at 0,0 to cover full screen
+            self.draw_text("Paused", self.title_font, 105, red, WIDTH/2, HEIGHT/2, align="center")          # drawing pause screen
         pg.display.flip()
 
     def events(self):
@@ -184,8 +220,10 @@ class Game:
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
                     self.quit()
-                if event.key == pg.K_h:
+                if event.key == pg.K_h:                         # toggle debug mode
                     self.draw_debug = not self.draw_debug
+                if event.key == pg.K_p:                         # toggle pause
+                    self.paused = not self.paused
 
     def show_start_screen(self):
         pass

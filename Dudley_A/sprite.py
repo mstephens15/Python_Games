@@ -135,6 +135,7 @@ class Mob(pg.sprite.Sprite):
         if self.health <= 0:                    # if health falls to 0, the zombie is killed
             choice(self.game.zombie_hit_sounds).play()      # play random zombie hit sound when it dies
             self.kill()
+            self.game.map_img.blit(self.game.splat, self.pos - vec(32, 32))   # draw splat at zombie place, minus half the distance
 
     def draw_health(self):
         if self.health > 60:
@@ -193,6 +194,7 @@ class Item(pg.sprite.Sprite):
         self.game = game
         self.image = game.item_images[type]
         self.rect = self.image.get_rect()
+        self.hit_rect = self.rect
         self.type = type
         self.rect.center = pos
         self.pos = pos
