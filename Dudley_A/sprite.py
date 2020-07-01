@@ -42,6 +42,7 @@ class Player(pg.sprite.Sprite):
         self.rot = 0                           # how far we've rotated
         self.last_shot = 0                     # havent shot yet when we spawn
         self.health = PLAYER_HEALTH
+        self.weapon = 'shotgun'
 
     def get_keys(self):
         self.rot_speed = 0          # setting rotation speed
@@ -56,15 +57,23 @@ class Player(pg.sprite.Sprite):
         if keys[pg.K_DOWN] or keys[pg.K_s]:
             self.vel = vec(-PLAYER_SPEED / 2, 0).rotate(-self.rot)
         if keys[pg.K_SPACE]:
-            now = pg.time.get_ticks()
-            if now - self.last_shot > BULLET_RATE:
-                self.last_shot = now
-                dir = vec(1, 0).rotate(-self.rot)
-                pos = self.pos + BARREL_OFFSET.rotate(-self.rot)        # this position of the bullet is offset from the center of the player
-                Bullet(self.game, pos, dir)
-                self.vel = vec(-KICKBACK, 0).rotate(-self.rot)          # gives a little kickback when shooting
-                choice(self.game.weapon_sounds['gun']).play()           # gun sounds
-                MuzzleFlash(self.game, pos)
+            self.shoot()
+
+    def shoot(self):
+        now = pg.time.get_ticks()
+        if now - self.last_shot > WEAPONS[self.weapon]['bullet_rate']:
+            self.last_shot = now
+            dir = vec(1, 0).rotate(-self.rot)
+            pos = self.pos + BARREL_OFFSET.rotate(-self.rot)
+            self.vel = vec(-WEAPONS[self.weapon]['kickback'], 0).rotate(-self.rot)
+            for i in range(WEAPONS[self.weapon]['bullet_count']):
+                spread = uniform(-WEAPONS[self.weapon]['bullet_spread'], WEAPONS[self.weapon]['bullet_spread'])
+                Bullet(self.game, pos, dir.rotate(spread))
+                snd = choice(self.game.weapon_sounds[self.weapon])
+                if snd.get_num_channels() > 2:
+                    snd.stop()
+                snd.play()
+            MuzzleFlash(self.game, pos)
 
     def update(self):
         self.get_keys()
@@ -155,13 +164,14 @@ class Bullet(pg.sprite.Sprite):
         self.groups = game.all_sprites, game.bullets
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = game.bullet_img                # loaded in load_data in main
+        self.image = game.bullet_images[WEAPONS[game.player.weapon]['bullet_size']]              # loaded in load_data in main
         self.rect = self.image.get_rect()
         self.hit_rect = self.rect
         self.pos = vec(pos)                         # has a vector that is the same number, but is a copy so the player doesn't go where the bullet should
         self.rect.center = pos
-        spread = uniform(-GUN_SPREAD, GUN_SPREAD)        # gives the bullet a random spread
-        self.vel = dir.rotate(spread) * BULLET_SPEED     # randomly rotate the vector by the spread; BULLET_SPEED actually makes it go
+        # spread = uniform(-GUN_SPREAD, GUN_SPREAD)        # gives the bullet a random spread
+        # self.vel = dir.rotate(spread) * BULLET_SPEED     # randomly rotate the vector by the spread; BULLET_SPEED actually makes it go
+        self.vel = dir * WEAPONS[game.player.weapon]['bullet_speed']
         self.spawn_time = pg.time.get_ticks()            # lets us know when to delete the bullet
 
     def update(self):
@@ -169,7 +179,7 @@ class Bullet(pg.sprite.Sprite):
         self.rect.center = self.pos
         if pg.sprite.spritecollideany(self, self.game.walls):    # if it hits any wall, delete it
             self.kill()
-        if pg.time.get_ticks() - self.spawn_time > BULLET_LIFE:  # if the bullet has traveled too long, delete it
+        if pg.time.get_ticks() - self.spawn_time > WEAPONS[self.game.player.weapon]['bullet_life']:  # if the bullet has traveled too long, delete it
             self.kill()
 
 # we arent drawing these, they will stay invisible; just has a rectangle

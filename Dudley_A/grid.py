@@ -33,14 +33,32 @@ AVOID_RADIUS = 50
 DETECT_RADIUS = 400
 SPLAT = 'splat red.png'
 
-# Gun settings
+# Weapon settings
 BULLET_IMG = 'bullet.png'
-BULLET_SPEED = 500
-BULLET_LIFE = 1000
-BULLET_RATE = 150    # how fast can we shoot the bullets
-KICKBACK = 200
-GUN_SPREAD = 5
-BULLET_DAMAGE = 10
+WEAPONS = {}
+WEAPONS['pistol'] = {'bullet_speed': 500,
+                     'bullet_life': 1000,
+                     'bullet_rate': 150,
+                     'bullet_damage': 10,
+                     'kickback': 200,
+                     'bullet_spread': 5,
+                     'bullet_size': 'lg',
+                     'bullet_count': 1}
+
+WEAPONS['shotgun'] = {'bullet_speed': 300,
+                     'bullet_life': 700,
+                     'bullet_rate': 600,
+                     'bullet_damage': 5,
+                     'kickback': 300,
+                     'bullet_spread': 18,
+                     'bullet_size': 'sm',
+                     'bullet_count': 12}
+# BULLET_SPEED = 500
+# BULLET_LIFE = 1000
+# BULLET_RATE = 150    # how fast can we shoot the bullets
+# KICKBACK = 200
+# GUN_SPREAD = 5
+# BULLET_DAMAGE = 10
 
 # Effects
 MUZZLE_FLASHES = ['whitePuff15.png', 'whitePuff16.png', 'whitePuff17.png']
@@ -66,6 +84,7 @@ PLAYER_HIT_SOUNDS = ['pain/8.wav', 'pain/9.wav', 'pain/10.wav', 'pain/11.wav']
 ZOMBIE_MOAN_SOUNDS = ['brains2.wav', 'brains3.wav', 'zombie-roar-1.wav', 'zombie-roar-2.wav',
                       'zombie-roar-3.wav', 'zombie-roar-5.wav', 'zombie-roar-6.wav', 'zombie-roar-7.wav']
 ZOMBIE_HIT_SOUNDS = ['splat-15.wav']
-WEAPON_SOUNDS_GUN = ['sfx_weapon_singleshot2.wav']
+WEAPON_SOUNDS = {'pistol': ['sfx_weapon_singleshot2.wav'],
+                 'shotgun': ['shotgun.wav']}
 EFFECTS_SOUNDS = {'level_start': 'level_start.wav',
                   'health_up': 'health_pack.wav'}
