@@ -62,15 +62,13 @@ class Game:
     def load_data(self):
         game_folder = path.dirname(__file__)
         img_folder = path.join(game_folder, 'img')
-        map_folder = path.join(game_folder, 'maps')
+        self.map_folder = path.join(game_folder, 'maps')
         snd_folder = path.join(game_folder, 'snd')
         music_folder = path.join(game_folder, 'music')
-        self.title_font = path.join(img_folder, 'ZOMBIE.TTF')                 # title font
+        self.title_font = path.join(img_folder, 'ZOMBIE.TTF')                 # title font, pause menu
+        self.hud_font = path.join(img_folder, 'Impacted2.0.ttf')
         self.dim_screen = pg.Surface(self.screen.get_size()).convert_alpha()        # dim screen when paused, pt1
         self.dim_screen.fill((0, 0, 0, 180))                                        # dim screen when paused, pt2
-        self.map = TiledMap(path.join(map_folder, 'level1.tmx'))
-        self.map_img = self.map.make_map()
-        self.map_rect = self.map_img.get_rect()
         self.player_img = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()      # player img
         self.bullet_images = {}
         self.bullet_images['lg'] = pg.image.load(path.join(img_folder, BULLET_IMG)).convert_alpha()      # bullet img
@@ -120,6 +118,9 @@ class Game:
         self.mobs = pg.sprite.Group()
         self.bullets = pg.sprite.Group()
         self.items = pg.sprite.Group()
+        self.map = TiledMap(path.join(self.map_folder, 'level1.tmx'))
+        self.map_img = self.map.make_map()
+        self.map_rect = self.map_img.get_rect()
         # for row, tiles in enumerate(self.map.data):  # Enumerate gets item and index number; this is to create the tiles
         #     for col, tile in enumerate(tiles):
         #         if tile == '1':
@@ -163,12 +164,18 @@ class Game:
         # update portion of the game loop
         self.all_sprites.update()
         self.camera.update(self.player)  # can switch out self.player to have the camera track any sprite we want
+
+      # game over condition
+
+
         hits = pg.sprite.groupcollide(self.mobs, self.bullets, False, True)     # zombie doesnt disappear, bullets do
 
       # player hits mob
-        for hit in hits:
-            hit.health -= WEAPONS[self.player.weapon]['bullet_damage'] * len(hits[hit])     # gets dictionary of how many bullets hit it, hense len
-            hit.vel = vec(0,0)
+        for mob in hits:
+            # hit.health -= WEAPONS[self.player.weapon]['bullet_damage'] * len(hits[hit])     # gets dictionary of how many bullets hit it, hense len
+            for bullet in hits[mob]:
+                mob.health -= bullet.damage
+            mob.vel = vec(0,0)
 
       # player picks up item
         hits = pg.sprite.spritecollide(self.player, self.items, False)
@@ -219,6 +226,8 @@ class Game:
         # pg.draw.rect(self.screen, white, self.player.hit_rect, 2)  # draws little white box around hitbox
         # HUD functions
         draw_player_health(self.screen, 10, 10, self.player.health / PLAYER_HEALTH)
+        self.draw_text('Zombies: {}'.format(len(self.mobs)), self.hud_font,
+                       30, white, WIDTH - 10, 10, align="ne")
         if self.paused:
             self.screen.blit(self.dim_screen, (0, 0))                                                        # put it at 0,0 to cover full screen
             self.draw_text("Paused", self.title_font, 105, red, WIDTH/2, HEIGHT/2, align="center")          # drawing pause screen
@@ -241,7 +250,25 @@ class Game:
         pass
 
     def show_go_screen(self):
-        pass
+        self.screen.fill(black)
+        self.draw_text("GAME OVER", self.title_font, 100,
+                       red, WIDTH / 2, HEIGHT / 2, align="center")
+        self.draw_text("Press a key to start", self.title_font, 75,
+                       white, WIDTH / 2, HEIGHT * 3/4, align="center")
+        pg.display.flip()
+        self.wait_for_key()
+
+    def wait_for_key(self):
+        pg.event.wait()         # clears the queue of keys, so you dont have the key pressed when dying so it starts right away
+        waiting = True
+        while waiting:
+            self.clock.tick(FPS)
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    waiting = False
+                    self.quit()
+                if event.type == pg.KEYUP:
+                    waiting = False
 
 # create the game object
 g = Game()
