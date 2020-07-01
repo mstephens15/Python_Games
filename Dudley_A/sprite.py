@@ -4,6 +4,8 @@ from tilemap import collide_hit_rect
 vec = pg.math.Vector2
 from random import uniform, choice, randint, random      # gives real number between bounds
 import pytweening as tween
+from itertools import chain
+
 
 def collide_with_walls(sprite, group, dir):
     if dir == 'x':  # if the collision is horizontal, i.e. from x
@@ -42,7 +44,8 @@ class Player(pg.sprite.Sprite):
         self.rot = 0                           # how far we've rotated
         self.last_shot = 0                     # havent shot yet when we spawn
         self.health = PLAYER_HEALTH
-        self.weapon = 'shotgun'
+        self.weapon = 'pistol'
+        self.damaged = False            # lets game know whether to draw it or not
 
     def get_keys(self):
         self.rot_speed = 0          # setting rotation speed
@@ -75,10 +78,21 @@ class Player(pg.sprite.Sprite):
                 snd.play()
             MuzzleFlash(self.game, pos)
 
+    def hit(self):
+        self.damaged = True
+        self.damage_alpha = chain(DAMAGE_ALPHA * 2)     # the 2 means it will go from light to dark twice (i.e., 0 -> 255, then 0 -> 255 again, to get pulse effect)
+
+
     def update(self):
         self.get_keys()
         self.rot = (self.rot + self.rot_speed * self.game.dt) % 360  # update our rotation by whatever the speed is, between (0,1)
         self.image = pg.transform.rotate(self.game.player_img, self.rot)
+        if self.damaged:
+            try:
+                self.image.fill((255, 0, 0, next(self.damage_alpha)), special_flags=pg.BLEND_RGBA_MULT)     # runs a chain, draws the color until the chain is done and we get exception
+            except:
+                self.damaged = False
+
         self.rect = self.image.get_rect()
         self.rect.center = self.pos
         self.pos += self.vel * self.game.dt
@@ -171,7 +185,7 @@ class Bullet(pg.sprite.Sprite):
         self.rect.center = pos
         # spread = uniform(-GUN_SPREAD, GUN_SPREAD)        # gives the bullet a random spread
         # self.vel = dir.rotate(spread) * BULLET_SPEED     # randomly rotate the vector by the spread; BULLET_SPEED actually makes it go
-        self.vel = dir * WEAPONS[game.player.weapon]['bullet_speed']
+        self.vel = dir * WEAPONS[game.player.weapon]['bullet_speed'] * uniform(0.9, 1.1)        # velocity of the bullet is randomized so the shotgun is more of a spread (the uniform part)
         self.spawn_time = pg.time.get_ticks()            # lets us know when to delete the bullet
 
     def update(self):
